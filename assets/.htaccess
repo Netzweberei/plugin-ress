@@ -1,0 +1,6 @@
+
+# Allow access to js files
+<Files ~ "\.(js|php)">
+ allow from all
+</Files>
+
