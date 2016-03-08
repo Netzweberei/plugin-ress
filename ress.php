@@ -94,7 +94,7 @@ class RessPlugin
                 // prepare the images
                 $ressstrtr = [];
                 $imagine = new \herbie\plugin\imagine\classes\ImagineExtension($this->config, '/');
-                $imagineFilter = (@$this->config->get("plugin.config.imagine.filter_sets.ress{$_SESSION['vw']}"))
+                $imagineFilter = (@$this->config->get("plugins.config.imagine.filter_sets.ress{$_SESSION['vw']}"))
                     ? "ress{$_SESSION['vw']}"
                     : 'ressMax';
 
