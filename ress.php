@@ -99,8 +99,10 @@ class RessPlugin
                     : 'ressMax';
 
                 if(array_key_exists('vw', $_SESSION)){
-                    $userWidth = $this->config->get('plugins.config.ress.stdWidth');
-                    $userHeight = $this->config->get('plugins.config.ress.stdHeight');
+                    $cssWidth = $this->config->get('plugins.config.ress.cssWidth');
+                    $cssHeight = $this->config->get('plugins.config.ress.cssHeight');
+                    $userWidth = false;
+                    $userHeight = false;
                     foreach($_imgtags[1] as $_ctr => $_src){
                         $_resolvedSrc = $this->resolve($_src);
 //                        var_dump($_resolvedSrc);
@@ -108,7 +110,7 @@ class RessPlugin
 //                            die(var_dump($_resolvedSrc));
                             continue;
                         }
-                        $ressstrtr[$_imgtags[0][$_ctr]] = $imagine->imagineFunction($_resolvedSrc,$imagineFilter, $attributes = [], $alt = $_src, $class = "ress{$_SESSION['vw']}", $id = '', $style= '',
+                        $ressstrtr[$_imgtags[0][$_ctr]] = $imagine->imagineFunction($_resolvedSrc,$imagineFilter, $attributes = [], $alt = $_src, $class = "ress{$_SESSION['vw']}", $id = '', $style= $cssWidth.$cssHeight,
                             $title = '', $width = $userWidth ? $userWidth : 0, $height = $userHeight ? $userHeight : 0, $media = 0);
                     }
                 }
