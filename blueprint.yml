@@ -1,0 +1,15 @@
+plugins:
+    config:
+          imagine:
+              filter_sets:
+                  ressMax:
+                      test: false
+                      filters:
+                          thumbnail:
+                              size:
+                                  - 2048
+                                  - 1024
+                              mode: inset
+          ress:
+              cssWidth: 'max-width:100%;'
+              cssHeight: 'height: auto;'

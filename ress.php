@@ -68,7 +68,7 @@ class RessPlugin
             $this->setSrcset($this->config->get('plugins.config.ress.vw'));
         }
 
-        // Remember detected viewport-size
+        // Register detected viewport-size
         if( isset($_SESSION['request']) && @$_SESSION['vw'] != $_SESSION['request'] ){
             $_SESSION['vw'] = $_SESSION['request'];
             $_SESSION['reload'] = 1;
@@ -128,10 +128,13 @@ class RessPlugin
         if( !isset($_SESSION['reload']) ){
             $_SESSION['reload'] = 0;
         }
-        if( $_SESSION['reload'] > 1){ // Chrome :-(
-            $_SESSION['reload'] = 0;
+
+        if( $_SESSION['reload'] >= 1){
+            $_SESSION['reloadinfo'] = $_SESSION['reload'];
+            $_SESSION['reload'] = -1;
             header("Refresh: 0; url=.");
         }
+
         if( !isset($_SESSION['vw']) || (isset($_REQUEST['vw']) && $_REQUEST['vw'] != $_SESSION['request']) ) {
 
             $_SESSION['request'] = $this->vw;
@@ -160,9 +163,15 @@ $head.'
             $this->setSrcset($params['vw']);
         }
 
+        if( !isset($_SESSION['reloadinfo']) ){
+            $_SESSION['reloadinfo'] = 0;
+        }
+
         $ret = "<style>#vwdetector {display:none;}</style>";
         if(!$this->isSpider() && $this->config->get('plugins.config.ress.test') == 1) $ret .= '<img id="vwdetector" srcset="'.$this->srcset.'" sizes="100vw" width="100%" height="1" alt="" onerror="this.onerror=null;location.reload();" />';
-        if(isset(DI::get('Page')->vw) && $this->config->get('plugins.config.ress.info') == 1) $ret .= 'RESS-Info: Detected initial viewport-width >= '.DI::get('Page')->vw.'px ( '.$_SESSION['reload'].' Reload(s) )';
+        if(isset(DI::get('Page')->vw) && $this->config->get('plugins.config.ress.info') == 1) $ret .= 'RESS-Info: Detected initial viewport-width >= '.DI::get('Page')->vw.'px ( '.$_SESSION['reloadinfo'].' Refresh(s) )';
+
+        $_SESSION['reloadinfo'] = 0;
 
         return $ret;
     }
