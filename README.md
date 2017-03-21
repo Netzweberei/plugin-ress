@@ -12,7 +12,9 @@ zu werden.
 Ist die Seiteneigenschaft "ress: true" gesetzt, werden alle in der Seite vorhandenen Bilder mit Hilfe des Imagine-Plugins auf die
 Breite skaliert, die genäß den entsprechenden ress-Filter vorgegeben ist (s.u.). Zusätzlich kann allen Bildern noch eine css-Eigenschaft übergeben werden.
 
-ACHTUNG:  
+ACHTUNG: Auch wenn mir bisher keine Fehlfunktionen aufgefallen sind, bitte ich zu berücksichtigen, dass das alles 'work in progress' ist 
+und ich noch nicht alle Browwser und Devices testen konnte. Außerdem möchte ich das PLugin noch nach und nach erweitern, es kann 
+sich also noch einiges ändern.
 
 
 ## Installation
@@ -28,7 +30,8 @@ Danach aktivierst Du das Plugin in der Konfigurationsdatei.
 
 ## Konfiguration
 
-Das Plugin muss konfiguriert werden. Die Einstellungen unter `plugins/ress/blueprint.yml` dienen als Vorlage. Füge diese unter `plugins.config.ress` ein:
+Das Plugin muss konfiguriert werden. Die Einstellungen unter `plugins/ress/blueprint.yml` dienen als Vorlage. Füge diese unter `plugins.config.ress` ein
+(sollen auch die Bilder einer Seite autom. skaliert werden, muss zusätzlich das getherbie/imagine-plugin installiert werden):
 
     plugins:
         config:
