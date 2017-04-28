@@ -38,6 +38,8 @@ class RessPlugin
 
     private $srcset = '';
 
+    private $srcsetx = '';
+
     public function __construct()
     {
         $this->config = DI::get('Config');
@@ -129,13 +131,15 @@ class RessPlugin
             $_SESSION['reload'] = 0;
         }
 
-        if( $_SESSION['reload'] >= 1){
+        if( $_SESSION['reload'] >= 1){ // I have no idea, where a value greater than 1 comes from, but it does!
             $_SESSION['reloadinfo'] = $_SESSION['reload'];
-            $_SESSION['reload'] = -1;
-            header("Refresh: 0; url=.");
+            $_SESSION['reload'] = 0;
+            if($this->config->get('plugins.config.ress.reload')) {
+                header("Refresh: 0; url=.");
+            }
         }
 
-        if( !isset($_SESSION['vw']) || (isset($_REQUEST['vw']) && $_REQUEST['vw'] != $_SESSION['request']) ) {
+        if( !isset($_SESSION['vw']) || (isset($_REQUEST['vw']) && $_REQUEST['vw']!='' && $_REQUEST['vw'] != $_SESSION['request']) ) {
 
             $_SESSION['request'] = $this->vw;
 
@@ -144,11 +148,14 @@ class RessPlugin
             $response->setContent(
 $head.'
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no">
-<meta http-equiv="refresh" content="0; URL=.">
+<meta http-equiv="refresh" content="2; URL=.">
 </head>
 <body>
-<style>#vwdetector {display:none;}</style>
-<img id="vwdetector" srcset="'.$this->srcset.'" sizes="100vw" width="100%" height="1" alt="" onerror="this.onerror=null;location.reload();" />
+<style>.vwdetector {display:none;}</style>
+<img class="vwdetector" srcset="'.$this->srcsetx.'" sizes="100vw" width="100%" height="1" alt="" />
+<img class="vwdetector" srcset="'.$this->srcset.'" sizes="100vw" width="100%" height="1" alt="" onerror="this.onerror=null;'
+.(($this->config->get('plugins.config.ress.reload') == true ) ? 'location.reload();' : '')
+.'" />
 </body>
 </html>'
             );
@@ -167,9 +174,16 @@ $head.'
             $_SESSION['reloadinfo'] = 0;
         }
 
-        $ret = "<style>#vwdetector {display:none;}</style>";
-        if(!$this->isSpider() && $this->config->get('plugins.config.ress.test') == 1) $ret .= '<img id="vwdetector" srcset="'.$this->srcset.'" sizes="100vw" width="100%" height="1" alt="" onerror="this.onerror=null;location.reload();" />';
-        if(isset(DI::get('Page')->vw) && $this->config->get('plugins.config.ress.info') == 1) $ret .= 'RESS-Info: Detected initial viewport-width >= '.DI::get('Page')->vw.'px ( '.$_SESSION['reloadinfo'].' Refresh(s) )';
+        $ret = "<style>.vwdetector {display:none;}</style>";
+        if(!$this->isSpider() && $this->config->get('plugins.config.ress.test') == 1) {
+            $ret .= '<img class="vwdetector" srcset="'.$this->srcsetx.'" sizes="100vw" width="100%" height="0" alt="" />';
+            $ret .= '<img class="vwdetector" srcset="'.$this->srcset.'" sizes="100vw" width="100%" height="0" alt="" onerror="this.onerror=null;';
+            $ret .= (($this->config->get('plugins.config.ress.reload') == true ) ? 'location.reload();' : '');
+            $ret .= '" />';
+        }
+        if(isset(DI::get('Page')->vw) && $this->config->get('plugins.config.ress.info') == 1) {
+            $ret .= 'RESS-Info: Initial max viewport-width <= '.DI::get('Page')->vw.'px, density = '.@$_SESSION['density'].' ( Page reloaded '.$_SESSION['reloadinfo'].' time(s) )';
+        }
 
         $_SESSION['reloadinfo'] = 0;
 
@@ -214,6 +228,9 @@ $head.'
             $_srcset[] = '/assets/ress/assets/ress.php?vw='.$_src.' '.$_src.'w';
         }
         $this->srcset = implode(',', $_srcset);
+        $this->srcsetx .= '/assets/ress/assets/ress.php?density=1 1x';
+        $this->srcsetx .= ',/assets/ress/assets/ress.php?density=2 2x';
+        $this->srcsetx .= ',/assets/ress/assets/ress.php?density=3 3x';
     }
 
     private function withEventSetPicturefill($response){
