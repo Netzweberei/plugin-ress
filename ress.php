@@ -40,6 +40,8 @@ class RessPlugin
 
     private $srcsetx = '';
 
+    private $ctrlrecur = 0;
+
     public function __construct()
     {
         $this->config = DI::get('Config');
@@ -58,22 +60,34 @@ class RessPlugin
 
     public function onPageLoaded($page)
     {
-        if(array_key_exists('vw', $_SESSION)) {
+        if(array_key_exists('vw', $_SESSION) && $_SESSION['vw']!==null) {
             $page->setData(['vw'=>$_SESSION['vw']]);
         }
 
     }
 
+    private function isAsset()
+    {
+        $pinfo = pathinfo(@$_SERVER['REQUEST_URI']);
+        switch(@$pinfo['extension']){
+            case '':
+                return false;
+        }
+    }
+
     public function onTwigInitialized($twig)
     {
-        if(!$this->isSpider()) {
+        if( !$this->isAsset() && !$this->isSpider() ) {
             $this->setSrcset($this->config->get('plugins.config.ress.vw'));
+        } else {
+            return;
         }
 
         // Register detected viewport-size
-        if( isset($_SESSION['request']) && @$_SESSION['vw'] != $_SESSION['request'] ){
+        $this->ctrlrecur++;
+        if($this->ctrlrecur == 1 &&  isset($_SESSION['request']) && $_SESSION['request']!==null ){
             $_SESSION['vw'] = $_SESSION['request'];
-            $_SESSION['reload'] = 1;
+            $_SESSION['reload'] = 0;
         }
 
         $twig->addFunction(
@@ -86,7 +100,8 @@ class RessPlugin
 
         $pData = DI::get('Page')->toArray()['data'];
         if(
-            array_key_exists('ress', $pData)
+            $this->ctrlrecur >= 1
+            && array_key_exists('ress', $pData)
             && DI::get('Page')->toArray()['data']['ress'] == true
         ){
             // Search for all html-img-tags
@@ -129,12 +144,13 @@ class RessPlugin
 
         if( !isset($_SESSION['reload']) ){
             $_SESSION['reload'] = 0;
+            $_SESSION['reloadinfo'] = 0;
         }
 
-        if( $_SESSION['reload'] >= 1){ // I have no idea, where a value greater than 1 comes from, but it does!
-            $_SESSION['reloadinfo'] = $_SESSION['reload'];
+        if( $_SESSION['reload'] > 0){
             $_SESSION['reload'] = 0;
             if($this->config->get('plugins.config.ress.reload')) {
+                $_SESSION['reloadinfo'] += 1;
                 header("Refresh: 0; url=.");
             }
         }
@@ -170,10 +186,6 @@ $head.'
             $this->setSrcset($params['vw']);
         }
 
-        if( !isset($_SESSION['reloadinfo']) ){
-            $_SESSION['reloadinfo'] = 0;
-        }
-
         $ret = "<style>.vwdetector {display:none;}</style>";
         if(!$this->isSpider() && $this->config->get('plugins.config.ress.test') == 1) {
             $ret .= '<img class="vwdetector" srcset="'.$this->srcsetx.'" sizes="100vw" width="100%" height="0" alt="" />';
@@ -183,9 +195,8 @@ $head.'
         }
         if(isset(DI::get('Page')->vw) && $this->config->get('plugins.config.ress.info') == 1) {
             $ret .= 'RESS-Info: Initial max viewport-width <= '.DI::get('Page')->vw.'px, density = '.@$_SESSION['density'].' ( Page reloaded '.$_SESSION['reloadinfo'].' time(s) )';
+            $_SESSION['reloadinfo'] = 0;
         }
-
-        $_SESSION['reloadinfo'] = 0;
 
         return $ret;
     }
